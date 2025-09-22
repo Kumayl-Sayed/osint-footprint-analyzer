@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSINT Footprint Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>OSINT Footprint Analyzer</h1>
+        <p>Enter a domain to analyze its public footprint (educational use only).</p>
+        
+        <form id="analyzeForm">
+            <input type="text" id="domainInput" placeholder="e.g., example.com" required>
+            <button type="submit">Analyze</button>
+        </form>
+        
+        <div id="loading" style="display: none;">Analyzing...</div>
+        <div id="results" style="display: none;"></div>
+        <div id="error" style="display: none; color: red;"></div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
