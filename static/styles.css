@@ -68,6 +68,9 @@ button:hover {
     border: 1px solid #ddd;
     border-radius: 5px;
     background: #f9f9f9;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
  
 }
 
@@ -87,3 +90,4 @@ ul {
     margin: 0;
     padding-left: 20px;
 }
+
