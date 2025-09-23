@@ -16,7 +16,7 @@ body {
 }
 
 h1 {
-    text-align: center;
+    
     color: #ffffff;
     background-color: #000000;
     border-radius: 10px;
@@ -68,7 +68,7 @@ button:hover {
     border: 1px solid #ddd;
     border-radius: 5px;
     background: #f9f9f9;
-    text-align: center; /* centers inline-block children like your h1 */
+ 
 }
 
 .section h3 {
