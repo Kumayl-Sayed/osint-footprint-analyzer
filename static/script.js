@@ -20,6 +20,8 @@ document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
     errorDiv.style.display = 'none';
     results.innerHTML = ''; // Clear previous results
 
+    
+
     try {
         const response = await fetch('/analyze', {
             method: 'POST',
@@ -41,76 +43,153 @@ document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
     }
 });
 
-function displayResults(data) {
-    const resultsDiv = document.getElementById('results');
-    let html = `<h2 class="result-title">Analysis for ${data.domain}</h2>`;
+// Helper sleep function
+// Helper sleep
+// Helper sleep
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-    // WHOIS
-    html += '<div class="section" data-section="1"><h3>WHOIS Information</h3>';
-    if (data.whois.error) {
-        html += `<p>${data.whois.error}</p>`;
-    } else {
+// Typewriter function with blinking cursor and page shift
+async function typeWriter(li, text, speed = 5) {
+    // Create cursor dot
+    const cursor = document.createElement('span');
+    cursor.classList.add('typing-cursor');
+    li.appendChild(cursor);
 
-        html += `<ul><li>Domain: ${data.whois.domain_name}</li>`;
-        html += `<li>Registrar: ${data.whois.registrar}</li>`;
-        html += `<li>Creation Date: ${data.whois.creation_date}</li>`;
-        html += `<li>Expiration Date: ${data.whois.expiration_date}</li>`;
-        html += `<li>Name Servers: ${data.whois.name_servers}</li>`;
-        html += `<li>Emails: ${data.whois.emails}</li></ul>`;
+    return new Promise(resolve => {
+        let i = 0;
+        function typing() {
+            if (i < text.length) {
+                li.textContent += text.charAt(i);
+                li.appendChild(cursor); // keep cursor at the end
 
-    }
-    html += '</div>';
+                // Scroll down gradually, leaving extra space
+                const extraSpace = 150; // px below text
+                const elementBottom = li.getBoundingClientRect().bottom;
+                const viewportHeight = window.innerHeight;
+                if (elementBottom > viewportHeight - extraSpace) {
+                    window.scrollBy({
+                        top: elementBottom - viewportHeight + extraSpace,
+                        left: 0,
+                        behavior: 'smooth'
+                    });
+                }
 
-    // IP
-    html += `<div class="section" data-section="2"><h3>IP Address</h3><p>${data.ip}</p></div>`;
-
-    // DNS
-    html += '<div class="section" data-section="3"><h3>DNS Records</h3>';
-    for (const [type, records] of Object.entries(data.dns)) {
-        if (records.length > 0) {
-            html += `<p><strong>${type}:</strong> ${records.join(', ')}</p>`;
+                i++;
+                setTimeout(typing, speed);
+            } else {
+                cursor.remove(); // remove cursor when done
+                resolve();
+            }
         }
-    }
-    if (Object.values(data.dns).every(recs => recs.length === 0)) {
-        html += '<p>No DNS records found.</p>';
-    }
-    html += '</div>';
-
-    // Subdomains
-    html += '<div class="section" data-section="4"><h3>Detected Subdomains</h3>';
-    if (data.subdomains.length > 0) {
-        html += '<ul>';
-        data.subdomains.forEach(sub => {
-            html += `<li>${sub.subdomain} -> ${sub.ip}</li>`;
-        });
-        html += '</ul>';
-    } else {
-        html += '<p>No subdomains detected (limited scan).</p>';
-    }
-    html += '</div>';
-
-    // Web Tech
-    html += '<div class="section" data-section="5"><h3>Web Technologies</h3>';
-    if (data.web_tech.error) {
-        html += `<p>${data.web_tech.error}</p>`;
-    } else {
-        html += `<ul><li>Server: ${data.web_tech.server}</li>`;
-        html += `<li>Powered By: ${data.web_tech.powered_by}</li>`;
-        html += `<li>Status Code: ${data.web_tech.status_code}</li></ul>`;
-    }
-    html += '</div>';
-
-    resultsDiv.innerHTML = html;
-    resultsDiv.style.display = 'block';
-
-    // Staggered animation for sections
-    const sections = resultsDiv.querySelectorAll('.section');
-    sections.forEach((section, index) => {
-        setTimeout(() => {
-            section.classList.add('animate-section');
-        }, index * 200); // 200ms delay per section for Zepto-like cascade
+        typing();
     });
 }
+
+// Example: usage with sequential section (simplified)
+async function displayResults(data) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = ''; 
+    resultsDiv.style.display = 'block';
+
+    function createSection(title) {
+        const div = document.createElement('div');
+        div.classList.add('section');
+        div.innerHTML = `<h3>${title}</h3><ul></ul>`;
+        return { div, ul: div.querySelector('ul') };
+    }
+
+    // WHOIS Section
+    const whois = createSection("WHOIS Information");
+    resultsDiv.appendChild(whois.div);
+    if (data.whois.error) {
+        const li = document.createElement('li');
+        whois.ul.appendChild(li);
+        await typeWriter(li, data.whois.error, 25);
+    } else {
+        for (const item of [
+            `Domain: ${data.whois.domain_name}`,
+            `Registrar: ${data.whois.registrar}`,
+            `Creation Date: ${data.whois.creation_date}`,
+            `Expiration Date: ${data.whois.expiration_date}`,
+            `Name Servers: ${data.whois.name_servers}`,
+            `Emails: ${data.whois.emails}`
+        ]) {
+            const li = document.createElement('li');
+            whois.ul.appendChild(li);
+            await typeWriter(li, item, 10);
+            await sleep(2);
+        }
+    }
+
+    // IP Section
+    const ipSection = createSection("IP Address");
+    resultsDiv.appendChild(ipSection.div);
+    const liIp = document.createElement('li');
+    ipSection.ul.appendChild(liIp);
+    await typeWriter(liIp, data.ip || "No IP found", 5);
+    await sleep(2);
+
+    // DNS Section
+    const dnsSection = createSection("DNS Records");
+    resultsDiv.appendChild(dnsSection.div);
+    const dnsEntries = Object.entries(data.dns).filter(([_, records]) => records.length > 0);
+    if (dnsEntries.length === 0) {
+        const li = document.createElement('li');
+        dnsSection.ul.appendChild(li);
+        await typeWriter(li, "No DNS records found.", 25);
+    } else {
+        for (const [type, records] of dnsEntries) {
+            const li = document.createElement('li');
+            dnsSection.ul.appendChild(li);
+            await typeWriter(li, `${type}: ${records.join(", ")}`, 1);
+            await sleep(1);
+        }
+    }
+
+    // Subdomains Section
+    const subSection = createSection("Detected Subdomains");
+    resultsDiv.appendChild(subSection.div);
+    if (data.subdomains.length === 0) {
+        const li = document.createElement('li');
+        subSection.ul.appendChild(li);
+        await typeWriter(li, "No subdomains detected (limited scan).", 25);
+    } else {
+        for (const sub of data.subdomains) {
+            const li = document.createElement('li');
+            subSection.ul.appendChild(li);
+            await typeWriter(li, `${sub.subdomain} -> ${sub.ip}`, 5);
+            await sleep(20);
+        }
+    }
+
+    // Web Tech Section
+    const techSection = createSection("Web Technologies");
+    resultsDiv.appendChild(techSection.div);
+    if (data.web_tech.error) {
+        const li = document.createElement('li');
+        techSection.ul.appendChild(li);
+        await typeWriter(li, data.web_tech.error, 25);
+    } else {
+        for (const item of [
+            `Server: ${data.web_tech.server}`,
+            `Powered By: ${data.web_tech.powered_by}`,
+            `Status Code: ${data.web_tech.status_code}`
+        ]) {
+            const li = document.createElement('li');
+            techSection.ul.appendChild(li);
+            await typeWriter(li, item, 5);
+            await sleep(20);
+        }
+    }
+}
+
+
+
+
+
+
 
 // Add result title style (in JS for dynamism, but could be in CSS)
 const style = document.createElement('style');
