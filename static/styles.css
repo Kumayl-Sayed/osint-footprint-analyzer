@@ -4,6 +4,39 @@ body {
     background-color: #000000;
     margin: 0;
     padding: 20px;
+    margin-bottom: 0;
+}
+#results {
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow: hidden;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+}
+
+/* Big blinking dot cursor */
+.typing-cursor {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-left: 3px;
+    background-color: black;
+    border-radius: 50%;
+    animation: blink 1s steps(2, start) infinite;
+    vertical-align: bottom;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
+}
+
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
 }
 
 .container {
