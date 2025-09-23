@@ -11,12 +11,24 @@ app = Flask(__name__)
 
 # Simple wordlist for subdomain brute-force (educational only, limited to 10)
 SUBDOMAIN_WORDLIST = ['www', 'mail', 'ftp', 'admin', 'test', 'dev', 'api', 'blog', 'shop', 'forum']
+from datetime import datetime, timezone
+
 def format_date(value):
+    def normalize(dt):
+        if isinstance(dt, datetime):
+            # If it's naive (no tzinfo), assume UTC
+            return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt.astimezone(timezone.utc)
+        return dt
+
     if isinstance(value, list) and len(value) > 0:
-        value = max(value)   # earliest
+        # Normalize all datetimes, then pick the earliest
+        normalized = [normalize(v) for v in value if isinstance(v, datetime)]
+        if normalized:
+            return min(normalized).strftime("%Y-%m-%d %H:%M:%S")
     if isinstance(value, datetime):
-        return value.strftime("%Y-%m-%d %H:%M:%S")
+        return normalize(value).strftime("%Y-%m-%d %H:%M:%S")
     return str(value)
+
 
 
 def get_whois_info(domain):
@@ -98,3 +110,4 @@ def analyze():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
