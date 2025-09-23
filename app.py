@@ -5,11 +5,19 @@ import requests
 import socket
 from urllib.parse import urlparse
 import re
+from datetime import datetime
 
 app = Flask(__name__)
 
 # Simple wordlist for subdomain brute-force (educational only, limited to 10)
 SUBDOMAIN_WORDLIST = ['www', 'mail', 'ftp', 'admin', 'test', 'dev', 'api', 'blog', 'shop', 'forum']
+def format_date(value):
+    if isinstance(value, list) and len(value) > 0:
+        value = max(value)   # earliest
+    if isinstance(value, datetime):
+        return value.strftime("%Y-%m-%d %H:%M:%S")
+    return str(value)
+
 
 def get_whois_info(domain):
     try:
@@ -17,8 +25,8 @@ def get_whois_info(domain):
         return {
             'domain_name': str(w.domain_name),
             'registrar': str(w.registrar),
-            'creation_date': str(w.creation_date),
-            'expiration_date': str(w.expiration_date),
+            'creation_date': format_date(w.creation_date),
+            'expiration_date': format_date(w.expiration_date),
             'name_servers': str(w.name_servers),
             'emails': str(w.email) if hasattr(w, 'email') else 'N/A'
         }
